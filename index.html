@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BIOGLOW ロボットゲーム 採点ツール</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+:root{--bg:#f2f6ec;--surf:#fff;--ink:#16322a;--sub:#5b6f65;--line:#cfdcc6;--moss:#4f8a2b;--moss-t:#e3efd6;--red:#d6112a;--on:#fff;--dis:.38;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1c17;--surf:#17281f;--ink:#e6f0e2;--sub:#9db3a6;--line:#2c4337;--moss:#8fcf5c;--moss-t:#223a24;--red:#ff5266;--on:#0f1c17;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1c17;--surf:#17281f;--ink:#e6f0e2;--sub:#9db3a6;--line:#2c4337;--moss:#8fcf5c;--moss-t:#223a24;--red:#ff5266;--on:#0f1c17;color-scheme:dark}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 120px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;line-height:1.6;font-size:15px}
+header{padding:20px 16px 8px;max-width:960px;margin:0 auto}
+h1{margin:0;font-size:22px;font-weight:900;letter-spacing:.02em}
+header p{margin:4px 0 0;color:var(--sub);font-size:13px}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--ink);color:var(--bg);margin-top:10px}
+.bar-in{max-width:960px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--ink);z-index:10}
+.tabs{display:flex;gap:6px}
+.tab{border:1px solid color-mix(in srgb,var(--bg) 40%,transparent);background:transparent;color:var(--bg);border-radius:6px;padding:4px 10px;font:inherit;font-size:13px;cursor:pointer;text-align:left;line-height:1.25}
+.tab b{display:block;font-size:16px}
+.tab[aria-selected="true"]{background:var(--bg);color:var(--ink);border-color:var(--bg)}
+.total{margin-left:auto;text-align:right;line-height:1.1}
+.total b{font-size:40px;font-weight:900;font-variant-numeric:tabular-nums}
+.total small{display:block;font-size:12px;opacity:.8}
+main{max-width:960px;margin:0 auto;padding:14px 16px 60px;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+section{background:var(--surf);border-left:6px solid var(--moss);padding:10px 14px 6px}
+section.wide{grid-column:1/-1;border-left-color:var(--red)}
+section h2{margin:0 0 4px;font-size:16px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+section h2 .sc{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--moss);font-weight:900}
+.nogo{font-size:11px;font-weight:500;color:var(--red);border:1px solid var(--red);border-radius:4px;padding:0 5px}
+.row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row label,.row .lb{flex:1;cursor:pointer;font-size:14px}
+.row .pt{font-weight:700;color:var(--moss);white-space:nowrap;font-variant-numeric:tabular-nums;min-width:48px;text-align:right}
+.row.off{opacity:var(--dis);pointer-events:none}
+input[type=checkbox]{width:24px;height:24px;accent-color:var(--moss);flex:none}
+.seg{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+.seg button,.step button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:5px 9px;min-height:34px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--moss);border-color:var(--moss);color:var(--on);font-weight:700}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:34px;padding:0;font-size:18px}
+.step span{min-width:20px;text-align:center;font-weight:700}
+.stack{display:block}.stack .lb{display:block;margin-bottom:6px}.stack .seg{justify-content:flex-start}
+.note{color:var(--sub);font-size:12px;margin:2px 0 8px}
+.foot{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;align-items:center;color:var(--sub);font-size:12px}
+.foot button{font:inherit;border:1px solid var(--red);color:var(--red);background:transparent;border-radius:6px;padding:6px 12px;cursor:pointer}
+.rec{font:inherit;font-weight:700;border:0;background:var(--bg);color:var(--ink);border-radius:6px;padding:10px 14px;cursor:pointer}
+.hist summary{cursor:pointer;list-style:revert}
+.nm,.nm2{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--surf);color:var(--ink);border-radius:6px;padding:8px 10px;min-width:0}
+.nm{width:170px}
+.nm2{width:100%;max-width:320px;margin-top:6px}
+.hn{font-weight:700;margin:0 8px}
+.hist summary b{font-size:18px;font-variant-numeric:tabular-nums}
+.hist .seg{margin-top:6px}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+<h1>BIOGLOW ロボットゲーム 採点ツール</h1>
+<p>競技終了時の状態を入力し、「得点を記録して次へ」で練習の記録を残せます。</p>
+</header>
+<div class="bar"><div class="bar-in">
+<input class="nm" id="nm" placeholder="記録の名前（任意）" maxlength="30" aria-label="記録の名前"><button class="rec" id="rec">得点を記録して次へ</button>
+<div class="total"><b id="tot">0</b><small id="best"></small></div>
+</div></div>
+<main id="main"></main>
+<script>
+const c=(id,t,p,req)=>({id,t,p,k:'c',req});
+const n=(id,t,p,max,req)=>({id,t,p,k:'n',max,req});
+const r=(id,t,opts)=>({id,t,k:'r',opts});
+const M=[
+[1,'ドローン調査',1,[c('1a','ドローンがマットに接触していない',20),c('1b','ボーナス：LiDARマップが完全にひっくり返り、スキャンマーカーが調査エリアに部分的にイン',10,'1a')]],
+[2,'弾ける種子',0,[n('2a','茎に接触していない種子（1個ごと）',10,3)]],
+[3,'岩起こし',0,[c('3a','調査フラグが下がっている',20),c('3b','ボーナス：岩が競技開始位置のまま',10,'3a')]],
+[4,'幸運な葉っぱ',1,[c('4g','キリギリスが葉っぱの生息地に完全に収まっている（外にいる場合 M04 は 0 点）',0),c('4a','1枚の葉っぱが完全に取り除かれ、巣に接触していない',10),c('4b','ボーナス：2枚目の葉っぱも取り除かれ巣に接触せず、キリギリスが開始位置のまま',20,'4a')]],
+[5,'根を伸ばす',1,[r('5','植物の根（どちらか1つのみ）',[['伸びていない',0],['一部が伸びている',10],['完全に伸びている',20]])]],
+[6,'ハキリアリの狂乱',0,[n('6a','ハキリアリが巣に接触し、葉っぱが巣の中にある（葉1枚ごと）',10,4)]],
+[7,'巨大な菌糸体',1,[c('7a','菌糸体が完全に伸びている',20),c('7b','ボーナス：M07達成かつ相手が M05 で20点',10,'7a'),c('7c','ボーナス：自分が M05 で20点かつ相手が M07 達成',10,s=>s['5']==2)]],
+[8,'絡まったつる',0,[c('8a','つるがマットに接触している',30)]],
+[9,'研究プラットフォーム',1,[c('9a','研究プラットフォームが上がっている',10),c('9b','カメラトラップが設置されている',10),c('9c','種子が木に触れていない',10)]],
+[10,'壊れやすいマイクロハビタット',1,[c('10a','蜘蛛の生息地が競技開始位置のまま',10),c('10b','カタツムリの生息地が競技開始位置のまま',10)]],
+[11,'過去への窓',0,[c('11a','根のカバーが下がり、マットに接触している',20)]],
+[12,'森の老木',1,[c('12a','支柱が完全に上がり、木に接触している',20),c('12b','サポートタイが柱にかかっている',10)]],
+[13,'キーストーン種',0,[c('13a','キーストーン種が修復プラットフォーム上にあり、幼木が上がっている',30)]],
+[14,'再生の種',0,[n('14a','種子が再生ステーションに収まっている（1個ごと）',5,3),n('14b','ボーナス：そのうちマットにも接触している（1個ごと）',5,3,'14a')]],
+[15,'生命中心型建築',1,[r('15d','このモデルを置いたドック',[['鉱山',0],['都市',0],['農園',0]]),c('15a','巣のあるひさしが上がっている',10),c('15b','庭の天窓が完全にイン',10),c('15c','コンポストハッチが完全に開き、マットに接触している',10),{id:'15x',k:'a',t:'環境ボーナス：置いたドックに対応する条件を達成（鉱山＝ひさし／都市＝天窓／農園＝ハッチ）',auto:s=>s['15'+'abc'[s['15d']||0]]?10:0}]]
+];
+const TOK=[0,10,15,25,35,50,50];
+const DEF=()=>({'4g':1,tok:6,'15d':0});
+let S=[DEF()],cur=0,H=[];
+try{const x=JSON.parse(localStorage.getItem('bioglow-v2')||'null');if(x){S=[x.s];H=x.h||[]}}catch(e){}
+const save=()=>{try{localStorage.setItem('bioglow-v2',JSON.stringify({s:S[0],h:H}))}catch(e){}};
+const esc=t=>String(t).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+function hist(){
+ if(!H.length)return '<section class="wide hist"><h2>記録</h2><p class="note">「得点を記録して次へ」を押すと、ここに得点が残ります。</p></section>';
+ return `<section class="wide hist"><h2>記録（新しい順）<span class="sc">ベスト ${Math.max(...H.map(x=>x.sc))}</span></h2>`+H.map((x,i)=>{const p=H[i+1],dl=p?x.sc-p.sc:null;
+  const parts=M.map(m=>[m[0],mScore(m,x.s)]).filter(a=>a[1]).map(a=>'M'+String(a[0]).padStart(2,'0')+' '+a[1]).concat(x.s.insp?['点検 20']:[],TOK[x.s.tok]?['精密 '+TOK[x.s.tok]]:[]).join('／');
+  return `<details class="row stack"><summary><b>${x.sc}点</b><span class="hn">${esc(x.n||'')}</span><span class="note">${x.d}${dl!==null?'　前回比 '+(dl>0?'+':'')+dl:''}</span></summary><input class="nm2" data-hn="${i}" value="${esc(x.n||'')}" placeholder="名前を付ける・変更する" maxlength="30" aria-label="記録の名前"><p class="note">${parts||'得点なし'}</p><div class="seg"><button data-hl="${i}">この入力を読み込む</button><button data-hd="${i}">削除</button></div></details>`}).join('')+'<div class="seg"><button id="hc">記録をすべて消す</button></div></section>';
+}
+const okReq=(it,s)=>!it.req||(typeof it.req==='string'?(s[it.req]||0)>0:it.req(s));
+function pts(it,s){
+ const v=s[it.id]||0;
+ if(it.k==='r')return it.opts[v][1];
+ if(it.k==='a')return it.auto(s);
+ if(it.k==='n'&&typeof it.req==='string')return Math.min(v,s[it.req]||0)*it.p;
+ if(!okReq(it,s))return 0;
+ return it.k==='n'?v*it.p:(v?it.p:0);
+}
+function mScore(m,s){if(m[0]===4&&!s['4g'])return 0;return m[3].reduce((a,it)=>a+pts(it,s),0)}
+function total(s){return M.reduce((a,m)=>a+mScore(m,s),0)+(s.insp?20:0)+TOK[s.tok]}
+function maxScore(){let t=70;M.forEach(m=>m[3].forEach(it=>{if(it.k==='c')t+=it.p;else if(it.k==='n'&&!it.req)t+=it.p*it.max;else if(it.k==='n')t+=it.p*it.max;else if(it.k==='r'&&it.opts.at(-1)[1])t+=it.opts.at(-1)[1];else if(it.k==='a')t+=10}));return t}
+function row(it,s){
+ const v=s[it.id]||0,off=it.k!=='r'&&it.k!=='a'&&typeof it.req!=='string'&&!okReq(it,s)||(it.k==='c'&&typeof it.req==='string'&&!okReq(it,s));
+ if(it.k==='c')return `<div class="row${off?' off':''}"><input type="checkbox" id="${it.id}" data-c="${it.id}" ${v?'checked':''}><label for="${it.id}">${it.t}</label><span class="pt">${it.p?'+'+it.p:'—'}</span></div>`;
+ if(it.k==='n'){const mx=typeof it.req==='string'?(s[it.req]||0):it.max;
+  return `<div class="row"><div class="lb">${it.t}</div><div class="step"><button data-n="${it.id}" data-d="-1" aria-label="減らす">−</button><span>${Math.min(v,mx)}</span><button data-n="${it.id}" data-d="1" data-mx="${mx}" aria-label="増やす">＋</button></div><span class="pt">${pts(it,s)}</span></div>`}
+ if(it.k==='a')return `<div class="row"><div class="lb">${it.t}</div><span class="pt">${pts(it,s)?'+10':'—'}</span></div>`;
+ return `<div class="row stack"><div class="lb">${it.t}</div><div class="seg">${it.opts.map((o,i)=>`<button data-r="${it.id}" data-i="${i}" aria-pressed="${v===i}">${o[0]}${o[1]?'（'+o[1]+'）':''}</button>`).join('')}</div></div>`;
+}
+function render(){
+ const s=S[cur],y=scrollY;
+ document.getElementById('tot').textContent=total(s);
+ document.getElementById('best').textContent=`記録 ${H.length}回／ベスト ${H.length?Math.max(...H.map(x=>x.sc)):'—'}点／満点 ${maxScore()}点`;
+ let h=`<section class="wide"><h2>装備と精密トークン<span class="sc">${(s.insp?20:0)+TOK[s.tok]}</span></h2>
+ <div class="row"><input type="checkbox" id="insp" data-c="insp" ${s.insp?'checked':''}><label for="insp">装備の点検：全装備が1つの発進エリアに完全に収まり、高さ305mm以下</label><span class="pt">+20</span></div>
+ <div class="row stack"><div class="lb">競技終了時に残っている精密トークン（6個で開始。ホーム外での中断ごとに1個失う）</div><div class="seg">${TOK.map((p,i)=>`<button data-tok="${i}" aria-pressed="${s.tok===i}">${i}個（${p}）</button>`).join('')}</div></div></section>`;
+ M.forEach(m=>{const sc=mScore(m,s),mx=m[3].reduce((a,it)=>a+(it.k==='c'?it.p:it.k==='n'?it.p*it.max:it.k==='r'?it.opts.at(-1)[1]:it.k==='a'?10:0),0);
+  h+=`<section><h2>M${String(m[0]).padStart(2,'0')} ${m[1]}${m[2]?'<span class="nogo">装備接触で無効</span>':''}<span class="sc">${sc} / ${mx}</span></h2>${m[3].map(it=>row(it,s)).join('')}${m[0]===4?'<p class="note">巣と、巣に囲まれたマット上のマーカー内が葉っぱの生息地です。</p>':''}${m[0]===7?'<p class="note">対戦相手がいない大会ではボーナスはありません。</p>':''}${m[0]===15?'<p class="note">ボーナスは1つだけ適用されます。M13〜15 は鉱山・都市・農園のどのドックにも置けます。</p>':''}</section>`});
+ h+=`<div class="foot"><button id="rs">入力をリセット</button><span>Gracious Professionalism®（2〜4点）はコアバリュー審査に加点されるため、ロボットゲームの得点には含まれません。</span></div>`+hist();
+ document.getElementById('main').innerHTML=h;scrollTo(0,window._top?0:y);window._top=0;save();
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button,input');if(!b)return;const s=S[cur],d=b.dataset;
+ if(b.id==='rec'){H.unshift({n:document.getElementById('nm').value.trim(),d:new Date().toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),sc:total(s),s:JSON.parse(JSON.stringify(s))});document.getElementById('nm').value='';S[0]=DEF();window._top=1}
+ else if(d.hl!==undefined){S[0]=JSON.parse(JSON.stringify(H[+d.hl].s));window._top=1}
+ else if(d.hd!==undefined)H.splice(+d.hd,1);
+ else if(b.id==='hc'){if(!confirm('記録をすべて消しますか？'))return;H=[]}
+ else if(d.c)s[d.c]=b.checked?1:0;
+ else if(d.n){const mx=d.mx!==undefined?+d.mx:(M.flatMap(m=>m[3]).find(i=>i.id===d.n).max);s[d.n]=Math.max(0,Math.min(mx,(s[d.n]||0)+ +d.d))}
+ else if(d.r)s[d.r]=+d.i;
+ else if(d.tok!==undefined)s.tok=+d.tok;
+ else if(b.id==='rs'){if(confirm('入力をリセットしますか？'))S[cur]=DEF()}
+ else return;
+ render();
+});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.hn!==undefined){const v=t.value.trim();H[+t.dataset.hn].n=v;t.closest('details').querySelector('.hn').textContent=v;save()}});
+render();
+</script>
+</body>
+</html>
